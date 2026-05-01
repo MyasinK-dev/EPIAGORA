@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#f8fafc">
+    
+    <link rel="manifest" id="manifestLink">
+    
+    <title>EPIAGORA Assess | Dijital Optik Asistan</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc; --surface-color: #ffffff;
+            --primary-color: #2563eb; --primary-hover: #1d4ed8;
+            --text-main: #1e293b; --text-muted: #64748b; --border-color: #e2e8f0;
+            --success-bg: #dcfce7; --success-text: #166534; --success-border: #bbf7d0;
+            --danger-bg: #fee2e2; --danger-text: #991b1b; --danger-border: #fecaca;
+            --warning-bg: #fef3c7; --warning-text: #92400e; --warning-border: #fde68a;
+            --multi-bg: #e0e7ff; --multi-text: #3730a3; --multi-border: #c7d2fe;
+            --empty-bg: #f1f5f9; --empty-text: #475569; --empty-border: #cbd5e1;
+            --dialog-bg: #1c1c1e; --dialog-text: #ffffff; --dialog-border: #2c2c2e;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0f172a; --surface-color: #1e293b;
+            --text-main: #f1f5f9; --text-muted: #94a3b8; --border-color: #334155;
+            --success-bg: #052e16; --success-text: #4ade80; --success-border: #14532d;
+            --danger-bg: #450a0a; --danger-text: #f87171; --danger-border: #7f1d1d;
+            --warning-bg: #422006; --warning-text: #fde047; --warning-border: #713f12;
+            --multi-bg: #1e1b4b; --multi-text: #818cf8; --multi-border: #312e81;
+            --empty-bg: #1e293b; --empty-text: #94a3b8; --empty-border: #475569;
+            --dialog-bg: #1c1c1e; --dialog-text: #ffffff; --dialog-border: #2c2c2e;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); transition: var(--transition); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 15px; padding-bottom: env(safe-area-inset-bottom, 15px); width: 100%; display: flex; flex-direction: column; flex: 1; height: 100%; }
+
+        header { background: var(--surface-color); padding: 0.8rem 1rem; border-radius: var(--radius); box-shadow: var(--shadow); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-bottom: 12px; flex-shrink: 0; z-index: 100; }
+        .logo { justify-self: start; white-space: nowrap; display: flex; flex-direction: column; align-items: flex-start; }
+        .logo h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.5px; }
+        
+        .header-exam-select { background: rgba(37, 99, 235, 0.1); color: var(--primary-color); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: 6px; padding: 2px 6px; font-size: 0.75rem; font-weight: 700; outline: none; cursor: pointer; margin-top: 4px; transition: var(--transition); }
+        .header-exam-select:hover { background: rgba(37, 99, 235, 0.2); }
+        [data-theme="dark"] .header-exam-select { background: rgba(37, 99, 235, 0.2); color: #60a5fa; border-color: rgba(37, 99, 235, 0.3); }
+        .show-mobile { display: none; }
+
+        .stats-group { display: flex; gap: 20px; justify-self: center; align-items: center; }
+        .stat-box { text-align: center; min-width: 40px; }
+        .stat-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+        .stat-value { font-size: 1rem; font-weight: 700; color: var(--primary-color); transition: color 0.3s; }
+
+        @keyframes blinkTimer { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        .timer-blink { animation: blinkTimer 1s infinite; color: #ef4444 !important; }
+        .timer-red { color: #ef4444 !important; }
+        .timer-orange { color: #f97316 !important; }
+        .timer-yellow { color: #eab308 !important; }
+
+        .header-buttons { display: flex; gap: 8px; justify-self: end; }
+        .header-buttons .btn-choice { padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; color: var(--text-main); }
+
+        .grid-layout { display: grid; grid-template-columns: 1fr 350px; gap: 15px; flex: 1; overflow: hidden; }
+        main, aside { display: flex; flex-direction: column; overflow: hidden; }
+        .card { background: var(--surface-color); padding: 1.2rem; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border-color); display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+        .tab-bar { display: none; overflow-x: auto; gap: 6px; padding-bottom: 6px; margin-bottom: 10px; border-bottom: 2px solid var(--border-color); flex-shrink: 0; }
+        .tab-bar::-webkit-scrollbar { height: 4px; }
+        .tab-bar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        .tab-btn { padding: 6px 12px; border-radius: 8px 8px 0 0; border: none; background: transparent; color: var(--text-muted); font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .tab-btn:hover { color: var(--text-main); }
+        .tab-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); background: var(--bg-color); }
+
+        .input-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 0.8rem; }
+        button { cursor: pointer; border: none; border-radius: 8px; padding: 12px; font-weight: 600; transition: var(--transition); font-size: 1rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-choice { background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); }
+        @media (hover: hover) and (pointer: fine) { .btn-choice:not(:disabled):hover { background: var(--primary-color); color: white; transform: translateY(-2px); } }
+        .btn-choice:not(:disabled):active { background: var(--primary-hover); color: white; transform: scale(0.95); }
+        .btn-choice.active { background: var(--primary-color); color: white; border-color: var(--primary-hover); }
+
+        .btn-special { background: var(--text-muted); color: white; font-size: 0.85rem;}
+        .btn-warning { background: var(--warning-text); color: var(--surface-color); }
+        .btn-multi { background: var(--multi-text); color: white; margin-top: 8px; width: 100%; }
+        .btn-multi.active { outline: 3px solid var(--primary-color); transform: scale(0.98); }
+        .btn-danger { background: #ef4444; color: white; font-size: 0.9rem;}
+        .btn-primary { background: var(--primary-color); color: white; width: 100%; margin-top: 0.8rem; }
+        .btn-success { background: #16a34a; color: white; width: 100%; margin-top: 0.8rem; }
+
+        .history-container { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 12px; padding-right: 5px; padding-top: 8px; align-content: start; }
+        .history-item { display: flex; flex-direction: column; align-items: center; padding: 10px; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); animation: slideIn 0.2s ease-out; transition: var(--transition); cursor: pointer; text-align: center; }
+        
+        .section-divider { grid-column: 1 / -1; background: var(--border-color); color: var(--text-main); padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+        .section-divider button { padding: 4px 8px; background: rgba(0,0,0,0.1); color: inherit; font-size: 12px; height: auto; }
+
+        .has-doubt { position: relative; }
+        .has-doubt::after { content: '?'; position: absolute; top: -6px; right: -6px; background: #eab308; color: #1c1917; border-radius: 50%; width: 20px; height: 20px; font-size: 13px; display: flex; align-items: center; justify-content: center; font-weight: 900; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 5; }
+
+        .item-q { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; pointer-events: none; }
+        .item-a { font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; pointer-events: none; display: flex; align-items: center; gap: 4px; }
+        .editing-active { outline: 3px solid var(--primary-color); outline-offset: 1px; transform: scale(1.05); background-color: var(--multi-bg) !important; z-index: 10; }
+        
+        .status-empty { opacity: 0.5; border-style: dashed; }
+        .status-doubt { background-color: var(--warning-bg) !important; color: var(--warning-text) !important; border-color: var(--warning-border) !important; }
+        .status-multi { background-color: var(--multi-bg) !important; color: var(--multi-text) !important; border-color: var(--multi-border) !important; }
+        .correct { background-color: var(--success-bg) !important; color: var(--success-text) !important; border-color: var(--success-border) !important; }
+        .wrong { background-color: var(--danger-bg) !important; color: var(--danger-text) !important; border-color: var(--danger-border) !important; }
+        .checked-empty { background-color: var(--empty-bg) !important; color: var(--empty-text) !important; border-color: var(--empty-border) !important; }
+        .status-doubt .item-q, .status-multi .item-q, .correct .item-q, .wrong .item-q, .checked-empty .item-q, .editing-active .item-q { color: inherit; opacity: 0.8; }
+
+        .live-stats-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; font-size: 1.1rem;}
+        .stat-card { padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center; }
+        .stat-card span { display: block; font-size: 1.5rem; font-weight: bold; margin-top: 5px; }
+
+        .chart-container { display: flex; justify-content: center; margin: 15px 0; }
+        .donut-chart { width: 140px; height: 140px; border-radius: 50%; background: var(--empty-border); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); transition: background 0.5s ease-out; }
+        .donut-inner { width: 100px; height: 100px; border-radius: 50%; background: var(--surface-color); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .donut-inner-text { font-weight: 800; font-size: 1.5rem; color: var(--primary-color); line-height: 1; }
+        .donut-inner-label { font-size: 0.6rem; color: var(--text-muted); font-weight: 700; margin-top: 4px; text-align:center;}
+        
+        .breakdown-container { margin-top: 15px; padding: 10px; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); }
+        .breakdown-row { display:flex; justify-content:space-between; font-size:0.85rem; padding:6px 0; border-bottom:1px solid var(--border-color); }
+        .breakdown-row:last-child { border-bottom: none; }
+
+        .btn-exam-complete { background: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-border); font-weight: 800; pointer-events: none;}
+
+        @media (max-width: 768px) { 
+            .container { padding: 8px; }
+            header { padding: 0.6rem; margin-bottom: 8px; gap: 5px; grid-template-columns: 1fr auto 1fr; }
+            .hide-mobile { display: none; } .show-mobile { display: inline; }
+            .logo h2 { font-size: 0.95rem; }
+            .stats-group { gap: 12px; } .stat-box { min-width: 32px; }
+            .stat-value { font-size: 0.9rem; } .stat-label { font-size: 0.55rem; }
+            .header-buttons { gap: 4px; } .header-buttons .btn-choice { width: 34px; height: 34px; }
+            .grid-layout { display: flex; flex-direction: column; gap: 8px; } 
+            aside { order: 1; flex: 1; min-height: 0; } main { order: 2; flex-shrink: 0; } 
+            .card { padding: 0.8rem; }
+            main .card > h3 { display: none; } 
+            aside .card > h3 { margin-bottom: 0.5rem; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; }
+            button { padding: 14px 8px; } 
+            .live-stats-grid { gap: 6px; }
+        }
+
+        /* MODALS */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; place-items: center; z-index: 1000; }
+        .modal-content { background: var(--surface-color); padding: 1.5rem; border-radius: var(--radius); max-width: 400px; width: 95%; max-height: 90vh; overflow-y: auto;}
+        textarea { width: 100%; height: 120px; margin: 1rem 0; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); resize: none; font-family: monospace; font-size: 0.9rem; }
+        
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-label { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+        .setting-control select, .setting-control input { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-family: inherit; font-size: 0.9rem; outline: none; cursor: pointer; max-width: 155px;}
+        .setting-control button { padding: 6px 12px; font-size: 0.85rem; height: auto; }
+        
+        .shortcut-list { font-size: 0.9rem; color: var(--text-muted); line-height: 1.8; }
+        .shortcut-list kbd { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 6px; font-weight: bold; color: var(--text-main); box-shadow: 0 2px 0 var(--border-color); }
+
+        /* CUSTOM DIALOG */
+        .custom-dialog-wrapper { background: var(--dialog-bg); color: var(--dialog-text); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--dialog-border); max-width: 360px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .cd-header { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #a1a1aa; margin-bottom: 15px; font-weight: 600; }
+        .cd-message { font-size: 1.1rem; line-height: 1.5; margin-bottom: 25px; font-weight: 500; }
+        .cd-buttons { display: flex; justify-content: flex-end; gap: 10px; }
+        .cd-btn { padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: transform 0.1s; }
+        .cd-btn:active { transform: scale(0.95); }
+        .cd-btn-cancel { background: #3a3a3c; color: #fff; }
+        .cd-btn-ok { background: #e5e5ea; color: #000; }
+        .cd-kbd { font-size: 0.7rem; background: rgba(0,0,0,0.2); padding: 2px 4px; border-radius: 4px; opacity: 0.7; }
+        .cd-btn-ok .cd-kbd { background: rgba(0,0,0,0.1); }
+        .cd-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #3f3f46; background: #27272a; color: #fff; font-size: 1rem; margin-bottom: 20px; outline: none;}
+        .cd-input:focus { border-color: var(--primary-color); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="logo">
+            <h2><span class="hide-mobile">EPIAGORA</span><span class="show-mobile">EPI</span><span style="color:var(--primary-color)">Assess</span></h2>
+            <select id="headerExamSelect" class="header-exam-select" onchange="changeExamMode(this.value)"></select>
+        </div>
+        <div class="stats-group">
+            <div class="stat-box">
+                <p class="stat-label" id="lblTime">SÜRE</p>
+                <p class="stat-value" id="timer">00:00</p>
+            </div>
+            <div class="stat-box">
+                <p class="stat-label" id="lblQuestion">SORU</p>
+                <p class="stat-value" id="qCount">0</p>
+            </div>
+        </div>
+        
+        <div class="header-buttons">
+            <button onclick="openModal('settingsModal')" class="btn-choice" id="btnSettingsIcon" title="Ayarlar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <div class="grid-layout">
+        <main>
+            <div class="card">
+                <h3 id="mainCardTitle" style="margin-bottom: 0.5rem; font-size: 1.1rem;">Cevap Girişi</h3>
+                
+                <div id="inputControls">
+                    <div class="input-grid">
+                        <button class="btn-choice letter-btn" onclick="handleInput('A')"><span class="btn-text">A</span></button>
+                        <button class="btn-choice letter-btn" onclick="handleInput('B')"><span class="btn-text">B</span></button>
+                        <button class="btn-choice letter-btn" onclick="handleInput('C')"><span class="btn-text">C</span></button>
+                        <button class="btn-choice letter-btn" onclick="handleInput('D')"><span class="btn-text">D</span></button>
+                        <button class="btn-choice letter-btn" onclick="handleInput('E')"><span class="btn-text">E</span></button>
+                    </div>
+
+                    <button id="btnMulti" class="btn-multi action-btn" onclick="toggleMultiMode()">
+                        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="M12 22V12"></path><path d="M12 12 3.32 7"></path><path d="M20.68 7 12 12"></path></svg>
+                        <span class="btn-text" id="lblMulti">Çoklu Seçim</span>
+                    </button>
+
+                    <div class="input-grid" style="grid-template-columns: 1fr 1fr; margin-top: 8px;">
+                        <button id="btnSkip" class="btn-special action-btn" onclick="addAnswer('Empty')">
+                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <span class="btn-text" id="lblSkip">Atla</span>
+                        </button>
+                        <button id="btnFlag" class="btn-special btn-warning action-btn" onclick="toggleLastDoubt()">
+                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+                            <span class="btn-text" id="lblFlag">İşaretle</span>
+                        </button>
+                        <button id="btnUndo" class="btn-choice action-btn" onclick="undo()" style="font-size: 0.9rem;">
+                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>
+                            <span class="btn-text" id="lblUndo">Geri Al</span>
+                        </button>
+                        <button id="btnReset" class="btn-danger action-btn" onclick="initResetSystem()">
+                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            <span class="btn-text" id="lblReset">Sıfırla</span>
+                        </button>
+                    </div>
+                    
+                    <button id="btnFinish" class="btn-primary action-btn" onclick="openModal('evalModal')">
+                        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        <span class="btn-text" id="lblFinish">Tamamla ve Analiz Et</span>
+                    </button>
+                </div>
+
+                <div id="checkControls" style="display:none; flex:1; flex-direction:column; justify-content:space-between; overflow-y:auto;">
+                    <div>
+                        <div class="chart-container">
+                            <div class="donut-chart" id="donutChart">
+                                <div class="donut-inner">
+                                    <span class="donut-inner-text" id="chartNetText">0.00</span>
+                                    <span class="donut-inner-label" id="lblNetInner">GENEL TOPLAM<br>NET</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="live-stats-grid" id="liveStatsGrid"></div>
+                        <div id="breakdownContainer" class="breakdown-container" style="display:none;"></div>
+                    </div>
+
+                    <div style="margin-top: 15px;">
+                        <button id="btnReAnalyze" class="btn-primary action-btn" style="width: 100%; margin-bottom: 8px;" onclick="handleEvalFlow()">
+                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            <span class="btn-text" id="lblReAnalyze">Sonraki Bölüm</span>
+                        </button>
+                        <button id="btnShare" class="btn-success action-btn" style="width: 100%; margin-bottom: 8px;" onclick="shareResult()">
+                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                            <span class="btn-text" id="lblShare">Sonucu Paylaş</span>
+                        </button>
+                        <button id="btnBackInput" class="btn-choice action-btn" style="width: 100%; margin-bottom: 8px;" onclick="exitCheckMode()">
+                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 5 5"></polyline></svg>
+                            <span class="btn-text" id="lblBackInput">Giriş Moduna Dön</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside>
+            <div class="card" style="display:flex; flex-direction:column; padding-bottom:0.5rem;">
+                <h3 style="margin-bottom: 0.5rem; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; flex-shrink:0;">
+                    <div>
+                        <span id="lblOptic">Optik Kağıt</span>
+                        <span id="editBadge" style="display:none; font-size:0.7rem; background:var(--primary-color); color:white; padding:3px 8px; border-radius:12px; margin-left:5px;">Edit</span>
+                        <span id="checkBadge" style="display:none; font-size:0.7rem; background:#16a34a; color:white; padding:3px 8px; border-radius:12px; margin-left:5px;">Check</span>
+                    </div>
+                </h3>
+                <div id="tabBar" class="tab-bar"></div>
+                <div id="historyGrid" class="history-container"></div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<!-- Ayarlar Modalı -->
+<div id="settingsModal" class="modal">
+    <div class="modal-content">
+        <h3 id="lblSettingsTitle" style="font-size: 1.2rem; margin-bottom: 15px; display:flex; align-items:center; gap:8px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            Settings
+        </h3>
+
+        <div class="setting-row">
+            <span class="setting-label" id="lblSetLang">Language</span>
+            <div class="setting-control">
+                <select id="langSelect" onchange="changeSetting('lang', this.value)">
+                    <option value="auto" id="optAuto">System / Auto</option>
+                    <option value="tr">Türkçe</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+        </div>
+        <div class="setting-row">
+            <span class="setting-label" id="lblSetSound">Sound Effects</span>
+            <div class="setting-control">
+                <select id="soundSelect" onchange="changeSetting('sound', this.value)">
+                    <option value="premium" id="optPremium">Premium (Yumuşak)</option>
+                    <option value="muted" id="optMuted">Kapalı (Mute)</option>
+                    <option value="modern" id="optModern">Modern (Standart)</option>
+                    <option value="mech" id="optMech">Mekanik (Tok)</option>
+                    <option value="scifi" id="optScifi">Sci-Fi (Fütüristik)</option>
+                </select>
+            </div>
+        </div>
+        <div class="setting-row">
+            <span class="setting-label" id="lblSetBtnStyle">Button Style</span>
+            <div class="setting-control">
+                <select id="btnStyleSelect" onchange="changeSetting('btnStyle', this.value)">
+                    <option value="text" id="optText">Sadece Metin</option>
+                    <option value="icon" id="optIcon">Sadece İkon</option>
+                    <option value="both" id="optBoth">İkisi de</option>
+                </select>
+            </div>
+        </div>
+        <div class="setting-row">
+            <span class="setting-label" id="lblSetTheme">Appearance</span>
+            <div class="setting-control" style="display:flex; gap:5px;">
+                <select id="themeSelect" onchange="changeThemeSetting(this.value)">
+                    <option value="auto" id="optThemeAuto">Sistem (Auto)</option>
+                    <option value="light" id="optThemeLight">Açık (Light)</option>
+                    <option value="dark" id="optThemeDark">Koyu (Dark)</option>
+                </select>
+                <button class="btn-choice" onclick="toggleFullScreen()" title="Tam Ekran">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="setting-row" style="border:none;">
+            <span class="setting-label" id="lblSetShortcuts">Keyboard Shortcuts</span>
+            <div class="setting-control">
+                <button class="btn-choice" onclick="closeModal('settingsModal'); openModal('shortcutsModal')" id="btnViewShortcuts">⌨️ Görüntüle</button>
+            </div>
+        </div>
+        <button class="btn-choice" style="width:100%; margin-top:15px; background: #1c1c1e; color:white; border-color:#2c2c2e;" onclick="closeModal('settingsModal')" id="btnSettingsClose">Close</button>
+    </div>
+</div>
+
+<!-- Değerlendirme Modalı -->
+<div id="evalModal" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitle" style="font-size: 1.2rem; margin-bottom: 10px;">Cevap Anahtarı</h3>
+        <button id="btnManualCheck" class="btn-success" onclick="startManualCheck()" style="padding: 15px; margin-bottom: 15px; width:100%;">👆 Manuel Kontrol</button>
+        <textarea id="answerKeyInput" placeholder="Örn:&#10;1. C 2. D 3. C&#10;veya&#10;1-A, 2-B&#10;veya&#10;24. Cevap: E"></textarea>
+        <div style="display:flex; gap:10px; margin-top: 10px;">
+            <button id="btnCancel" class="btn-choice" onclick="closeModal('evalModal')" style="flex:1;">İptal</button>
+            <button id="btnSmart" class="btn-primary" onclick="processSmartAnalysis()" style="flex:2;">Akıllı Analiz</button>
+        </div>
+    </div>
+</div>
+
+<!-- Kısayollar Modalı -->
+<div id="shortcutsModal" class="modal">
+    <div class="modal-content">
+        <h3 style="font-size: 1.2rem; margin-bottom: 10px;" id="lblShortcutsTitle">Klavye Kısayolları ⌨️</h3>
+        <div class="shortcut-list">
+            <kbd>A</kbd> - <kbd>E</kbd> veya <kbd>1</kbd> - <kbd>5</kbd> : <span class="sh-mark">Şık işaretleme</span><br>
+            <kbd>Space</kbd> : <span class="sh-skip">Boş bırak / Atla</span><br>
+            <kbd>Backspace</kbd> : <span class="sh-undo">Geri Al</span><br>
+            <kbd>?</kbd> : <span class="sh-flag">Şüpheli işaretle</span><br>
+            <kbd>M</kbd> : <span class="sh-multi">Çoklu seçim modunu aç/kapat</span><br>
+        </div>
+        <button class="btn-choice" style="width:100%; margin-top:15px; background: #1c1c1e; color:white; border-color:#2c2c2e;" onclick="closeModal('shortcutsModal')" id="btnShortcutsClose">Anladım</button>
+    </div>
+</div>
+
+<!-- Custom Modern Dialog -->
+<div id="customDialog" class="modal" style="z-index: 2000;">
+    <div class="custom-dialog-wrapper">
+        <div class="cd-header">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            EPIAGORA
+        </div>
+        <div class="cd-message" id="cdMessage">Message goes here...</div>
+        <input type="text" id="cdInput" class="cd-input" style="display:none;" autocomplete="off">
+        <div class="cd-buttons">
+            <button class="cd-btn cd-btn-cancel" id="cdBtnCancel" onclick="closeCustomDialog('cancel')">Cancel <span class="cd-kbd">ESC</span></button>
+            <button class="cd-btn cd-btn-ok" id="cdBtnOk" onclick="closeCustomDialog('ok')">OK <span class="cd-kbd">Space</span></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // PWA
+    const manifest = { name: "EPIAGORA Assess", short_name: "EPI Assess", display: "standalone", background_color: "#f8fafc", theme_color: "#2563eb", icons: [{ src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMjU2M2ViIi8+PHRleHQgeD0iNTAiIHk9IjY1IiBmb250LXNpemU9IjUwIiBmb250LWZhbWlseT0iSW50ZXIsc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkU8L3RleHQ+PC9zdmc+", sizes: "512x512", type: "image/svg+xml" }] };
+    document.getElementById('manifestLink').href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type: 'application/json'}));
+
+    // KAPSAMLI VE EKSİKSİZ DİL SÖZLÜĞÜ 
+    const dict = {
+        tr: { 
+            titleInput: "Cevap Girişi", titleResult: "Sınav Sonucu", time: "SÜRE", question: "SORU", 
+            multi: "Çoklu Seçim", skip: "Atla", flag: "İşaretle", undo: "Geri Al", reset: "Sıfırla", finish: "Sınavı Tamamla ve Analiz Et", share: "Sonucu Paylaş", backInput: "Giriş Moduna Dön", newExam: "Yeni Sınava Başla", 
+            optic: "Optik Kağıt", setSettings: "Ayarlar", setLang: "Dil (Language)", setSound: "Ses Efekti", setBtnStyle: "Buton Stili", setTheme: "Tema", setShortcuts: "Klavye Kısayolları", btnClose: "Kapat", btnUnderstood: "Anladım", btnView: "Görüntüle", 
+            modalEvalTitle: "Cevap Anahtarı", btnManual: "👆 Manuel Kontrol", btnCancel: "İptal", btnSmart: "Akıllı Analiz", btnReAnalyze: "Mevcut Bölümü Yeniden Değerlendir", btnExamComplete: "✨ Sınav Tamamlandı",
+            shTitle: "Klavye Kısayolları ⌨️", shMark: "Şık işaretleme", shSkip: "Boş bırak / Atla", shUndo: "Geri Al", shFlag: "Şüpheli işaretle", shMulti: "Çoklu seçim modunu aç/kapat",
+            dlgCancel: "İptal", dlgOk: "Tamam", errEmptyText: "Lütfen cevap anahtarı metnini yapıştırın.", errFormat: "Geçerli bir cevap formatı bulunamadı. Lütfen kontrol edin.",
+            msgTimeout: "Sınav süresi doldu!", msgConfirmReset: "Tüm veriler silinecek, emin misiniz?", msgSaved: "Sonuç panoya kopyalandı!",
+            msgResume: "Yarım kalan bir sınavınız var. Devam etmek ister misiniz?", examRunning: "Sınav devam ediyor. Süre kurmak için önce sıfırlayın.", errEmptyList: "Sınav boş!",
+            optMuted: "Kapalı (Mute)", optModern: "Modern (Standart)", optMech: "Mekanik (Tok)", optPremium: "Premium (Yumuşak)", optScifi: "Sci-Fi (Fütüristik)",
+            optText: "Sadece Metin", optIcon: "Sadece İkon", optBoth: "İkisi de", optAuto: "System / Auto",
+            optThemeAuto: "Sistem (Auto)", optThemeLight: "Açık (Light)", optThemeDark: "Koyu (Dark)",
+            nextSection: "Sonraki Bölüm:", 
+            overallCorrect: "Toplam Doğru", overallWrong: "Toplam Yanlış", overallEmpty: "Toplam Boş",
+            secCorrect: "Bölüm Doğrusu", secWrong: "Bölüm Yanlışı", secEmpty: "Bölüm Boşu",
+            btnShowOverall: "📊 Genel Analizi Gör",
+            lblNetInner: "GENEL TOPLAM<br>NET"
+        },
+        en: { 
+            titleInput: "Answer Input", titleResult: "Exam Result", time: "TIME", question: "Q", 
+            multi: "Multi-Select", skip: "Skip", flag: "Flag", undo: "Undo", reset: "Reset", finish: "Finish & Analyze", share: "Share Result", backInput: "Back to Input", newExam: "Start New Exam", 
+            optic: "Answer Sheet", setSettings: "Settings", setLang: "Language", setSound: "Sound Effects", setBtnStyle: "Button Style", setTheme: "Theme", setShortcuts: "Keyboard Shortcuts", btnClose: "Close", btnUnderstood: "Got it", btnView: "View", 
+            modalEvalTitle: "Answer Key", btnManual: "👆 Manual Check", btnCancel: "Cancel", btnSmart: "Smart Analyze", btnReAnalyze: "Re-evaluate Current Section", btnExamComplete: "✨ Evaluation Complete",
+            shTitle: "Keyboard Shortcuts ⌨️", shMark: "Mark option", shSkip: "Leave blank / Skip", shUndo: "Undo last", shFlag: "Flag as doubtful", shMulti: "Toggle multi-select mode",
+            dlgCancel: "Cancel", dlgOk: "OK", errEmptyText: "Please paste the answer key text.", errFormat: "Valid format not found. Please check your text.",
+            msgTimeout: "Time's up!", msgConfirmReset: "All data will be deleted. Are you sure?", msgSaved: "Copied to clipboard!",
+            msgResume: "You have an unsaved exam. Continue?", examRunning: "Exam is running. Reset first.", errEmptyList: "Exam is empty!",
+            optMuted: "Muted", optModern: "Modern (Standard)", optMech: "Mechanical (Crisp)", optPremium: "Premium (Soft)", optScifi: "Sci-Fi (Futuristic)",
+            optText: "Text Only", optIcon: "Icon Only", optBoth: "Both", optAuto: "System / Auto",
+            optThemeAuto: "System (Auto)", optThemeLight: "Light", optThemeDark: "Dark",
+            nextSection: "Next Section:", 
+            overallCorrect: "Total Correct", overallWrong: "Total Incorrect", overallEmpty: "Total Blank",
+            secCorrect: "Section Correct", secWrong: "Section Incorrect", secEmpty: "Section Blank",
+            btnShowOverall: "📊 View Overall Analysis",
+            lblNetInner: "OVERALL<br>SCORE"
+        }
+    };
+
+    // ALFABETİK VE SABİT SIRALI SINAV ŞABLONLARI
+    const examPresetsKeys = ['classic', 'kpss', 'ales', 'dgs', 'yokdil', 'yks_tyt'];
+    const examPresets = {
+        classic: { tr: 'Klasik Sınav (Serbest)', en: 'Classic Exam (Free)', penalty: 4, duration: null, sections: [{ tr: 'Genel', en: 'General', target: 0 }] },
+        kpss: { tr: 'KPSS Lisans (GY-GK)', en: 'KPSS (General)', penalty: 4, duration: 130, sections: [
+            { tr: 'Türkçe', en: 'Turkish', target: 30 }, { tr: 'Matematik', en: 'Math', target: 30 },
+            { tr: 'Tarih', en: 'History', target: 27 }, { tr: 'Coğrafya', en: 'Geography', target: 18 }, { tr: 'Vatandaşlık', en: 'Citizenship', target: 15 }
+        ]},
+        ales: { tr: 'ALES', en: 'ALES', penalty: 4, duration: 150, sections: [{ tr: 'Sayısal', en: 'Quantitative', target: 50 }, { tr: 'Sözel', en: 'Verbal', target: 50 }] },
+        dgs: { tr: 'DGS', en: 'DGS', penalty: 4, duration: 135, sections: [{ tr: 'Sayısal', en: 'Quantitative', target: 50 }, { tr: 'Sözel', en: 'Verbal', target: 50 }] },
+        yokdil: { tr: 'YDS / YÖKDİL', en: 'YDS / YÖKDİL', penalty: 0, duration: 180, sections: [{ tr: 'Yabancı Dil', en: 'Foreign Language', target: 80 }] },
+        yks_tyt: { tr: 'YKS (TYT)', en: 'YKS (TYT)', penalty: 4, duration: 165, sections: [{ tr: 'Türkçe', en: 'Turkish', target: 40 }, { tr: 'Sosyal', en: 'Social Sci.', target: 20 }, { tr: 'Matematik', en: 'Math', target: 40 }, { tr: 'Fen', en: 'Science', target: 20 }] }
+    };
+
+    let sysState = { 
+        activeExam: 'classic', activeSec: 0, sections: examPresets['classic'].sections.map(s => ({ title_tr: s.tr, title_en: s.en, target: s.target, answers: [] })),
+        startTime: null, elapsedTime: 0, timerInterval: null, isMultiMode: false, tempMulti: [], editingIndex: null, countdownSeconds: null, isCheckingPhase: false,
+        showOverallStats: false, // Yeni: Genel analiz modu filtresi
+        settings: { lang: 'auto', sound: 'premium', btnStyle: 'icon', theme: 'auto' } 
+    };
+    const numMap = { '1': 'A', '2': 'B', '3': 'C', '4': 'D', '5': 'E' };
+
+    // CUSTOM DIALOG
+    let cdCallbackOk = null; let cdCallbackCancel = null;
+    function showCustomDialog(type, message, onOk, onCancel) {
+        document.getElementById('cdMessage').innerText = message;
+        document.getElementById('cdInput').style.display = type === 'prompt' ? 'block' : 'none';
+        document.getElementById('cdBtnCancel').style.display = type === 'alert' ? 'none' : 'flex';
+        const lang = sysState.settings.lang === 'auto' ? (navigator.language.startsWith('en') ? 'en' : 'tr') : sysState.settings.lang;
+        document.getElementById('cdBtnCancel').innerHTML = `${dict[lang].dlgCancel} <span class="cd-kbd">ESC</span>`;
+        document.getElementById('cdBtnOk').innerHTML = `${dict[lang].dlgOk} <span class="cd-kbd">Space</span>`;
+        cdCallbackOk = onOk; cdCallbackCancel = onCancel;
+        document.getElementById('customDialog').style.display = 'grid';
+        if(type === 'prompt') { document.getElementById('cdInput').value = ''; setTimeout(()=> document.getElementById('cdInput').focus(), 50); }
+    }
+    function closeCustomDialog(action) {
+        document.getElementById('customDialog').style.display = 'none';
+        if (action === 'ok' && cdCallbackOk) { const val = document.getElementById('cdInput').style.display === 'block' ? document.getElementById('cdInput').value : null; cdCallbackOk(val); } 
+        else if (action === 'cancel' && cdCallbackCancel) { cdCallbackCancel(); }
+        cdCallbackOk = null; cdCallbackCancel = null;
+    }
+
+    window.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal')) {
+            if(e.target.id === 'customDialog') { closeCustomDialog('cancel'); } else { e.target.style.display = 'none'; }
+        }
+    });
+
+    function saveState() { localStorage.setItem('epi_assess_v9', JSON.stringify(sysState)); }
+    function loadState() {
+        const saved = localStorage.getItem('epi_assess_v9');
+        if (saved) {
+            const p = JSON.parse(saved);
+            if(p.settings) sysState.settings = { ...sysState.settings, ...p.settings }; // Güvenli birleştirme
+            if(p.sections) {
+                let hasData = false;
+                p.sections.forEach(s => { if(s.answers && s.answers.length > 0) hasData = true; });
+                if (hasData) {
+                    const lang = sysState.settings.lang === 'auto' ? (navigator.language.startsWith('en') ? 'en' : 'tr') : sysState.settings.lang;
+                    showCustomDialog('confirm', dict[lang].msgResume, () => {
+                        sysState.activeExam = p.activeExam || 'classic'; sysState.activeSec = p.activeSec || 0; sysState.sections = p.sections;
+                        sysState.elapsedTime = p.elapsedTime || 0; sysState.countdownSeconds = p.countdownSeconds; sysState.isCheckingPhase = p.isCheckingPhase;
+                        if(sysState.isCheckingPhase) { switchToResultUI(); updateLiveStats(); }
+                        renderTabs(); render(); startTimer(true);
+                    }, () => { applyExamChange(p.activeExam || 'classic'); });
+                } else { sysState.activeExam = p.activeExam || 'classic'; sysState.sections = p.sections; }
+            }
+        }
+        document.getElementById('langSelect').value = sysState.settings.lang; document.getElementById('soundSelect').value = sysState.settings.sound; document.getElementById('btnStyleSelect').value = sysState.settings.btnStyle;
+        applySettings(); renderTabs(); render();
+    }
+
+    function changeExamMode(examId) {
+        if(sysState.activeExam === examId) return;
+        const langCode = sysState.settings.lang === 'auto' ? (navigator.language.startsWith('en') ? 'en' : 'tr') : sysState.settings.lang;
+        let hasData = false; sysState.sections.forEach(s => { if(s.answers.length > 0) hasData = true; });
+        if(hasData) {
+            showCustomDialog('confirm', dict[langCode].msgConfirmReset, () => { applyExamChange(examId); }, () => { document.getElementById('headerExamSelect').value = sysState.activeExam; });
+        } else { applyExamChange(examId); }
+    }
+
+    function applyExamChange(examId) {
+        playSound('undo'); sysState.activeExam = examId; sysState.activeSec = 0; sysState.showOverallStats = false;
+        const preset = examPresets[examId];
+        sysState.sections = preset.sections.map(s => ({ title_tr: s.tr, title_en: s.en, target: s.target, answers: [] }));
+        sysState.elapsedTime = 0; sysState.editingIndex = null; 
+        
+        sysState.countdownSeconds = preset.duration ? preset.duration * 60 : null;
+        clearInterval(sysState.timerInterval); sysState.timerInterval = null; 
+        
+        const timerEl = document.getElementById('timer');
+        timerEl.className = 'stat-value';
+        if(sysState.countdownSeconds) { timerEl.innerText = `${Math.floor(sysState.countdownSeconds / 60).toString().padStart(2, '0')}:${(sysState.countdownSeconds % 60).toString().padStart(2, '0')}`; } 
+        else { timerEl.innerText = "00:00"; }
+        timerEl.style.color = "var(--primary-color)"; 
+        
+        document.getElementById('answerKeyInput').value = '';
+        exitCheckMode(); renderTabs(); render(); saveState();
+    }
+
+    // TEMA UYGULAMA MANTIĞI
+    function changeThemeSetting(val) {
+        playSound('click');
+        sysState.settings.theme = val;
+        saveState();
+        applyThemeSetting();
+    }
+
+    function applyThemeSetting() {
+        let t = sysState.settings.theme || 'auto';
+        let actualTheme = t;
+        
+        // Eğer sistem (auto) seçiliyse cihazın karanlık/aydınlık modunu tespit et
+        if (t === 'auto') {
+            actualTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        
+        document.body.setAttribute('data-theme', actualTheme);
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', actualTheme === 'dark' ? '#0f172a' : '#f8fafc');
+        
+        // Menüdeki değeri eşitle
+        const ts = document.getElementById('themeSelect');
+        if(ts) ts.value = t;
+    }
+
+    // Cihazın teması değişirse (Kullanıcı Auto'daysa canlı olarak güncelle)
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        if (sysState.settings.theme === 'auto') {
+            applyThemeSetting();
+        }
+    });
+
+    function changeSetting(key, value) { sysState.settings[key] = value; saveState(); applySettings(); renderTabs(); if(sysState.isCheckingPhase) updateLiveStats(); }
+    
+    function applySettings() {
+        const langCode = sysState.settings.lang === 'auto' ? (navigator.language.startsWith('en') ? 'en' : 'tr') : sysState.settings.lang;
+        const t = dict[langCode];
+        
+        const examSelect = document.getElementById('headerExamSelect'); examSelect.innerHTML = '';
+        examPresetsKeys.forEach(key => {
+            let opt = document.createElement('option'); opt.value = key; opt.innerText = langCode === 'tr' ? examPresets[key].tr : examPresets[key].en;
+            if(key === sysState.activeExam) opt.selected = true; examSelect.appendChild(opt);
+        });
+
+        document.getElementById('mainCardTitle').innerHTML = sysState.isCheckingPhase ? t.titleResult : t.titleInput;
+        document.getElementById('lblTime').innerText = t.time; document.getElementById('lblQuestion').innerText = t.question;
+        document.getElementById('lblMulti').innerText = t.multi; document.getElementById('lblSkip').innerText = t.skip;
+        document.getElementById('lblFlag').innerText = t.flag; document.getElementById('lblUndo').innerText = t.undo;
+        document.getElementById('lblReset').innerText = t.reset; document.getElementById('lblFinish').innerText = t.finish;
+        document.getElementById('lblShare').innerText = t.share; document.getElementById('lblBackInput').innerText = t.backInput;
+        document.getElementById('lblOptic').innerText = t.optic; 
+        
+        document.getElementById('lblSettingsTitle').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> ` + t.setSettings;
+        document.getElementById('lblSetLang').innerText = t.setLang; document.getElementById('lblSetSound').innerText = t.setSound;
+        document.getElementById('lblSetBtnStyle').innerText = t.setBtnStyle; document.getElementById('lblSetTheme').innerText = t.setTheme;
+        document.getElementById('lblSetShortcuts').innerText = t.setShortcuts;
+        document.getElementById('btnSettingsClose').innerText = t.btnClose; document.getElementById('btnShortcutsClose').innerText = t.btnUnderstood;
+        document.getElementById('btnManualCheck').innerText = t.btnManual; document.getElementById('btnCancel').innerText = t.btnCancel; document.getElementById('btnSmart').innerText = t.btnSmart;
+        document.getElementById('btnViewShortcuts').innerHTML = `⌨️ ${t.btnView}`;
+        document.getElementById('lblShortcutsTitle').innerText = t.shTitle; document.querySelector('.sh-mark').innerText = t.shMark; document.querySelector('.sh-skip').innerText = t.shSkip;
+        document.querySelector('.sh-undo').innerText = t.shUndo; document.querySelector('.sh-flag').innerText = t.shFlag; document.querySelector('.sh-multi').innerText = t.shMulti;
+        
+        document.getElementById('optMuted').innerText = t.optMuted; document.getElementById('optModern').innerText = t.optModern;
+        document.getElementById('optMech').innerText = t.optMech; document.getElementById('optPremium').innerText = t.optPremium;
+        document.getElementById('optScifi').innerText = t.optScifi; document.getElementById('optAuto').innerText = t.optAuto;
+        document.getElementById('optText').innerText = t.optText; document.getElementById('optIcon').innerText = t.optIcon; document.getElementById('optBoth').innerText = t.optBoth;
+
+        // TEMA YAZILARI
+        document.getElementById('optThemeAuto').innerText = t.optThemeAuto; 
+        document.getElementById('optThemeLight').innerText = t.optThemeLight; 
+        document.getElementById('optThemeDark').innerText = t.optThemeDark;
+
+        // BUTON STİLİ LOGİC'İ GÜVENLE ÇALIŞTIRILIYOR
+        const s = sysState.settings.btnStyle;
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            const icon = btn.querySelector('.btn-icon'); const text = btn.querySelector('.btn-text');
+            if(icon) icon.style.display = (s === 'icon' || s === 'both') ? 'inline-block' : 'none';
+            if(text) text.style.display = (s === 'text' || s === 'both') ? 'inline-block' : 'none';
+        });
+
+        applyThemeSetting(); 
+
+        if(sysState.isCheckingPhase) { updateLiveStats(); updateEvalButtons(); }
+    }
+
+    let audioCtx = null;
+    function playSound(type) {
+        const s = sysState.settings.sound; if (s === 'muted') return;
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+        osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+        const t = audioCtx.currentTime; const isPremium = s === 'premium';
+        osc.type = s === 'mech' ? 'square' : (s === 'scifi' ? 'sawtooth' : 'sine');
+
+        if (type === 'click') {
+            osc.frequency.setValueAtTime(s==='mech'?400:600, t); gainNode.gain.setValueAtTime(isPremium ? 0.03 : 0.05, t); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+            osc.start(t); osc.stop(t + 0.15);
+        } else if (type === 'doubt') { 
+            osc.frequency.setValueAtTime(400, t); osc.frequency.linearRampToValueAtTime(800, t + 0.15); gainNode.gain.setValueAtTime(isPremium ? 0.03 : 0.05, t); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+            osc.start(t); osc.stop(t + 0.15);
+        } else if (type === 'multi') { 
+            osc.frequency.setValueAtTime(700, t); gainNode.gain.setValueAtTime(0, t); gainNode.gain.linearRampToValueAtTime(isPremium ? 0.03 : 0.05, t + 0.02); gainNode.gain.linearRampToValueAtTime(0, t + 0.07); gainNode.gain.linearRampToValueAtTime(isPremium ? 0.03 : 0.05, t + 0.09); gainNode.gain.linearRampToValueAtTime(0, t + 0.14);
+            osc.start(t); osc.stop(t + 0.15);
+        } else if (type === 'wrong') { 
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(200, t); osc.frequency.linearRampToValueAtTime(150, t + 0.2); gainNode.gain.setValueAtTime(isPremium ? 0.05 : 0.08, t); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+            osc.start(t); osc.stop(t + 0.2);
+        } else if (type === 'correct') { 
+            osc.frequency.setValueAtTime(800, t); osc.frequency.linearRampToValueAtTime(1200, t + 0.1); gainNode.gain.setValueAtTime(isPremium ? 0.03 : 0.05, t); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+            osc.start(t); osc.stop(t + 0.1);
+        } else if (type === 'undo') {
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(s==='mech'?200:300, t); gainNode.gain.setValueAtTime(0.05, t); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+            osc.start(t); osc.stop(t + 0.15);
+        } else if (type === 'success') { 
+            osc.type = s==='scifi'?'sawtooth':'sine'; osc.frequency.setValueAtTime(523.25, t); osc.frequency.setValueAtTime(659.25, t + 0.1); gainNode.gain.setValueAtTime(isPremium?0.02:0.05, t); gainNode.gain.linearRampToValueAtTime(0, t + 0.3);
+            osc.start(t); osc.stop(t + 0.3);
+        }
+        if (navigator.vibrate && s !== 'muted') navigator.vibrate((type==='wrong' || s==='mech') ? 30 : 15);
+    }
+
+    function blurActiveElement() { if (document.activeElement && document.activeElement.tagName === 'BUTTON') document.activeElement.blur(); }
+
+    function renderTabs() {
+        const langCode = sysState.settings.lang === 'auto' ? (navigator.language.startsWith('en') ? 'en' : 'tr') : sysState.settings.lang;
+        const bar = document.getElementById('tabBar'); bar.innerHTML = '';
+        if (sysState.sections.length <= 1) { bar.style.display = 'none'; return; }
+        bar.style.display = 'flex';
+        sysState.sections.forEach((sec, idx) => {
+            const btn = document.createElement('button'); btn.className = `tab-btn ${idx === sysState.activeSec ? 'active' : ''}`; 
+            btn.innerText = langCode === 'tr' ? sec.title_tr : sec.title_en;
+            btn.onclick = () => { playSound('click'); sysState.activeSec = idx; sysState.editingIndex = null; sysState.showOverallStats = false; renderTabs(); render(); if(sysState.isCheckingPhase) { updateLiveStats(); updateEvalButtons(); } saveState(); };
+            bar.appendChild(btn);
+        });
+    }
+
+    function handleItemClick(index) { if (sysState.isCheckingPhase) return; toggleEditMode(index); blurActiveElement(); }
+    function toggleEditMode(index) { playSound('click'); sysState.editingIndex = sysState.editingIndex === index ? null : index; render(); }
+    
+    // Check Mode'da artık ekrana tıklanarak değiştirilmez. Manuel kontrol için buton var.
+    function toggleCheckStatus(index) {
+        const ans = sysState.sections[sysState.activeSec].answers[index];
+        if (!ans.checkStatus) { ans.checkStatus = 'correct'; playSound('correct'); } else if (ans.checkStatus === 'correct') { ans.checkStatus = 'wrong'; playSound('wrong'); }
+        else if (ans.checkStatus === 'wrong') { ans.checkStatus = 'empty_check'; playSound('click'); } else { ans.checkStatus = 'correct'; playSound('correct'); }
+        render(); updateLiveStats(); saveState();
+    }
+
+    function handleInput(val) {
+        if (sysState.isCheckingPhase) return;
+        playSound('click');
+        if (sysState.isMultiMode) {
+            if (!sysState.tempMulti.includes(val)) { sysState.tempMulti.push(val); event.target.classList.add('active'); }
+            if (sysState.tempMulti.length === 2) { addAnswer(sysState.tempMulti.join('')); exitMultiMode(); }
+        } else { addAnswer(val); }
+        blurActiveElement();
+    }
+
+    function toggleMultiMode() { if (sysState.isCheckingPhase) return; playSound('multi'); sysState.isMultiMode = !sysState.isMultiMode; sysState.tempMulti = []; document.getElementById('btnMulti').classList.toggle('active', sysState.isMultiMode); if(!sysState.isMultiMode) exitMultiMode(); blurActiveElement(); }
+    function exitMultiMode() { sysState.isMultiMode = false; sysState.tempMulti = []; document.getElementById('btnMulti').classList.remove('active'); document.querySelectorAll('.letter-btn').forEach(b => b.classList.remove('active')); }
+
+    // KLASİK MOD SÜRE BAŞLATMA DÜZELTİLDİ
+    function addAnswer(val) {
+        if (sysState.isCheckingPhase) return;
+        const target = sysState.sections[sysState.activeSec].target;
+        if (target > 0 && sysState.sections[sysState.activeSec].answers.length >= target && sysState.editingIndex === null) {
+            playSound('wrong'); 
+            const lang = sysState.settings.lang === 'auto' ? (navigator.language.startsWith('en') ? 'en' : 'tr') : sysState.settings.lang;
+            return showCustomDialog('alert', lang === 'tr' ? `Bu bölümün sınırına (${target}) ulaştınız. Lütfen diğer sekmeye geçin.` : `Section limit (${target}) reached. Please switch tabs.`);
+        }
+        
+        if (!sysState.timerInterval) startTimer();
+        
+        if (sysState.editingIndex !== null) { sysState.sections[sysState.activeSec].answers[sysState.editingIndex].value = val; sysState.editingIndex = null; } 
+        else { sysState.sections[sysState.activeSec].answers.push({ id: Date.now(), value: val, isDoubt: false, checkStatus: null, correctValue: null }); }
+        render(); saveState(); blurActiveElement();
+    }
+
+    function toggleLastDoubt() {
+        if (sysState.isCheckingPhase) return;
+        const activeAns = sysState.sections[sysState.activeSec].answers; if (activeAns.length === 0) return; playSound('doubt');
+        const i = sysState.editingIndex !== null ? sysState.editingIndex : activeAns.length - 1;
+        activeAns[i].isDoubt = !activeAns[i].isDoubt; render(); saveState(); blurActiveElement();
+    }
+
+    function undo() { if (sysState.isCheckingPhase) return; const activeAns = sysState.sections[sysState.activeSec].answers; if(activeAns.length > 0) { playSound('undo'); activeAns.pop(); if (sysState.editingIndex >= activeAns.length) sysState.editingIndex = null; render(); saveState(); } blurActiveElement(); }
+
+    function initResetSystem() {
+        const lang = sysState.settings.lang === 'auto' ? (navigator.language.startsWith('en') ? 'en' : 'tr') : sysState.settings.lang;
+        showCustomDialog('confirm', dict[lang].msgConfirmReset, () => {
+            playSound('undo'); sysState.sections.forEach(s => s.answers = []); 
+            sysState.activeSec = 0; sysState.elapsedTime = 0; sysState.editingIndex = null; 
+            
+            const presetDuration = examPresets[sysState.activeExam].duration;
+            sysState.countdownSeconds = presetDuration ? presetDuration * 60 : null;
+            
+            clearInterval(sysState.timerInterval); sysState.timerInterval = null; 
+            const timerEl = document.getElementById('timer'); timerEl.className = 'stat-value';
+            if(sysState.countdownSeconds) { timerEl.innerText = `${Math.floor(sysState.countdownSeconds / 60).toString().padStart(2, '0')}:${(sysState.countdownSeconds % 60).toString().padStart(2, '0')}`; } 
+            else { timerEl.innerText = "00:00"; }
+            timerEl.style.color = "var(--primary-color)"; 
+            document.getElementById('answerKeyInput').value = ''; 
+            exitCheckMode(); renderTabs(); render(); saveState();
+        });
+    }
+
+    function render() {
+        const grid = document.getElementById('historyGrid'); grid.innerHTML = '';
+        document.getElementById('editBadge').style.display = (sysState.editingIndex !== null && !sysState.isCheckingPhase) ? 'inline-block' : 'none';
+        document.getElementById('checkBadge').style.display = sysState.isCheckingPhase ? 'inline-block' : 'none';
+        
+        const activeAns = sysState.sections[sysState.activeSec].answers;
+        const target = sysState.sections[sysState.activeSec].target;
+
+        activeAns.forEach((ans, index) => {
+            const item = document.createElement('div'); let classes = ['history-item'];
+            if (ans.isDoubt) classes.push('has-doubt');
+            if (sysState.isCheckingPhase) {
+                if (ans.checkStatus === 'correct') classes.push('correct'); else if (ans.checkStatus === 'wrong') classes.push('wrong');
+                else if (ans.checkStatus === 'empty_check') classes.push('checked-empty'); else classes.push('status-empty');
+                item.onclick = () => toggleCheckStatus(index); // Check modunda tıklama buraya yönlenir
+            } else {
+                if (ans.isDoubt) classes.push('status-doubt'); if (ans.value === 'Empty') classes.push('status-empty');
+                if (ans.value.length > 1 && ans.value !== 'Empty') classes.push('status-multi'); if (sysState.editingIndex === index) classes.push('editing-active');
+                item.onclick = () => handleItemClick(index);
+            }
+            item.className = classes.join(' '); 
+            
+            let displayVal = ans.value === 'Empty' ? '-' : ans.value;
+            if (sysState.isCheckingPhase && ans.correctValue && (ans.checkStatus === 'wrong' || ans.checkStatus === 'empty_check' || (ans.checkStatus === 'correct' && ans.value.length > 1))) {
+                displayVal = `<span style="opacity:0.5">${displayVal}</span> <span style="font-size:0.85em; font-weight:900;">➔ ${ans.correctValue}</span>`;
+            }
+            item.innerHTML = `<span class="item-q">${index + 1}</span><span class="item-a">${displayVal}</span>`; grid.appendChild(item);
+        });
+        
+        document.getElementById('qCount').innerText = target > 0 ? `${activeAns.length}/${target}` : activeAns.length;
+        if (sysState.editingIndex === null && !sysState.isCheckingPhase) requestAnimationFrame(() => grid.scrollTop = grid.scrollHeight);
+    }
+
+    function startTimer(isResuming = false) {
+        if(!isResuming) sysState.startTime = Date.now();
+        const timerEl = document.getElementById('timer');
+        sysState.timerInterval = setInterval(() => {
+            sysState.elapsedTime++;
+            if (sysState.countdownSeconds !== null) {
+                const r = sysState.countdownSeconds - sysState.elapsedTime;
+                if (r <= 0) { 
+                    clearInterval(sysState.timerInterval); sysState.timerInterval = null; 
+                    timerEl.innerText = "00:00"; timerEl.className = 'stat-value timer-blink';
+                    const lang = sysState.settings.lang === 'auto' ? (navigator.language.startsWith('en') ? 'en' : 'tr') : sysState.settings.lang;
+                    showCustomDialog('alert', dict[lang].msgTimeout); return; 
+                }
+                
+                timerEl.className = 'stat-value';
+                if (r <= 180) timerEl.classList.add('timer-blink');
+                else if (r <= 600) timerEl.classList.add('timer-red');
+                else if (r <= 1200) timerEl.classList.add('timer-orange');
+                else if (r <= 1800) timerEl.classList.add('timer-yellow');
+                else timerEl.style.color = "var(--primary-color)";
+
+                timerEl.innerText = `${Math.floor(r/60).toString().padStart(2,'0')}:${(r%60).toString().padStart(2,'0')}`;
+            } else {
+                timerEl.innerText = `${Math.floor(sysState.elapsedTime/60).toString().padStart(2,'0')}:${(sysState.elapsedTime%60).toString().padStart(2,'0')}`;
+            }
+            if(sysState.elapsedTime % 5 === 0) saveState(); 
+        }, 1000);
+    }
+
+    function handleEvalFlow() {
+        const isLast = sysState.activeSec === sysState.sections.length - 1;
+        if (!isLast) { 
+            sysState.activeSec++; 
+            sysState.showOverallStats = false; // Yeni bölüme geçince genel analizi kapat
+            renderTabs(); 
+            render(); 
+            updateLiveStats(); 
+            openModal('evalModal'); 
+        } 
+    }
+
+    function updateEvalButtons() {
+        const isLast = sysState.activeSec === sysState.sections.length - 1;
+        const lang = sysState.settings.lang === 'auto' ? (navigator.language.startsWith('en') ? 'en' : 'tr') : sysState.settings.lang;
+        const btnReAnalyze = document.getElementById('btnReAnalyze');
+        const lblReAnalyze = document.getElementById('lblReAnalyze');
+        
+        if (!isLast) {
+            const nextSec = lang === 'tr' ? sysState.sections[sysState.activeSec + 1].title_tr : sysState.sections[sysState.activeSec + 1].title_en;
+            lblReAnalyze.innerText = dict[lang].nextSection + ` ${nextSec} ➔`;
+            btnReAnalyze.className = 'btn-primary action-btn';
+            btnReAnalyze.onclick = handleEvalFlow;
+        } else { 
+            // SON BÖLÜM MANTIĞI GÜNCELLENDİ
+            if (!sysState.showOverallStats && sysState.sections.length > 1) {
+                lblReAnalyze.innerText = dict[lang].btnShowOverall;
+                btnReAnalyze.className = 'btn-primary action-btn';
+                btnReAnalyze.onclick = () => { 
+                    playSound('click'); 
+                    sysState.showOverallStats = true; 
+                    updateLiveStats(); 
+                    updateEvalButtons(); 
+                    saveState(); 
+                };
+            } else {
+                lblReAnalyze.innerText = dict[lang].btnExamComplete; 
+                btnReAnalyze.className = 'btn-exam-complete action-btn';
+                btnReAnalyze.onclick = null;
+            }
+        }
+    }
+
+    function openModal(id) { 
+        const lang = sysState.settings.lang === 'auto' ? (navigator.language.startsWith('en') ? 'en' : 'tr') : sysState.settings.lang;
+        if(id==='evalModal') {
+            if(sysState.sections[sysState.activeSec].answers.length === 0) return showCustomDialog('alert', dict[lang].errEmptyList);
+            const title = lang === 'tr' ? sysState.sections[sysState.activeSec].title_tr : sysState.sections[sysState.activeSec].title_en;
+            document.getElementById('modalTitle').innerText = `${title} ${dict[lang].modalEvalTitle}`;
+            document.getElementById('answerKeyInput').value = ''; 
+        }
+        document.getElementById(id).style.display = 'grid'; blurActiveElement(); 
+    }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function startManualCheck() {
+        closeModal('evalModal'); clearInterval(sysState.timerInterval); sysState.timerInterval = null; sysState.isCheckingPhase = true; sysState.editingIndex = null;
+        sysState.showOverallStats = false;
+        sysState.sections[sysState.activeSec].answers.forEach(ans => { ans.checkStatus = (ans.value === 'Empty') ? 'empty_check' : null; });
+        switchToResultUI(); render(); updateLiveStats(); saveState(); playSound('success');
+    }
+
+    function processSmartAnalysis() {
+        const lang = sysState.settings.lang === 'auto' ? (navigator.language.startsWith('en') ? 'en' : 'tr') : sysState.settings.lang;
+        let rawText = document.getElementById('answerKeyInput').value.toUpperCase();
+        if (!rawText.trim()) return showCustomDialog('alert', dict[lang].errEmptyText);
+
+        let parsedKey = [];
+        let safeText = rawText.replace(/(?:ÇÖZÜM|AÇIKLAMA|NEDEN|ÇÜNKÜ|SEBEB|PROFESÖR|NOT:|EXPLANATION|SOLUTION|REASON|BECAUSE|NOTE:|HINT:)(?!\s*[:\-\.=]?\s*[A-E1-5]\b)[^]*?(?=(?:SORU|QUESTION|Q|YANIT|ANSWER|ANS)\b\s*\d+|(?<!\d)\d+\s*[\.\-\):\]]|$)/gi, " ");
+        let regex = /(?<!\d)(\d+)\s*(?:[\.\-\):\]\/]\s*)?(?:[A-ZÇĞİÖŞÜ]{2,}\s*){0,4}[\.\-\:=]?\s*([A-E1-5])\b/gi;
+        const matches = [...safeText.matchAll(regex)];
+        
+        let activeAnswers = sysState.sections[sysState.activeSec].answers;
+
+        if (matches.length === 0) {
+            let cleanAlpha = safeText.replace(/[^A-E]/g, ''); if (cleanAlpha.length > 0) parsedKey = cleanAlpha.split('');
+        } else {
+            matches.forEach(m => { let qNum = parseInt(m[1]) - 1; let ans = ['1','2','3','4','5'].includes(m[2]) ? numMap[m[2]] : m[2]; if (qNum >= 0 && qNum < activeAnswers.length) { parsedKey[qNum] = ans; } });
+        }
+
+        if (parsedKey.length === 0) return showCustomDialog('alert', dict[lang].errFormat);
+
+        activeAnswers.forEach((ans, i) => {
+            const correctAns = parsedKey[i]; if (correctAns) ans.correctValue = correctAns;
+            if (!correctAns || ans.value === 'Empty') ans.checkStatus = 'empty_check'; else if (ans.value.includes(correctAns)) ans.checkStatus = 'correct'; else ans.checkStatus = 'wrong';
+        });
+
+        closeModal('evalModal'); clearInterval(sysState.timerInterval); sysState.timerInterval = null; sysState.isCheckingPhase = true;
+        sysState.showOverallStats = false;
+        switchToResultUI(); render(); updateLiveStats(); saveState(); playSound('success');
+    }
+
+    function switchToResultUI() {
+        const t = dict[sysState.settings.lang === 'auto' ? (navigator.language.startsWith('en') ? 'en' : 'tr') : sysState.settings.lang];
+        document.getElementById('mainCardTitle').innerText = t.titleResult;
+        document.getElementById('inputControls').style.display = 'none'; document.getElementById('checkControls').style.display = 'flex';
+        updateEvalButtons();
+    }
+
+    function exitCheckMode() {
+        sysState.isCheckingPhase = false; 
+        sysState.showOverallStats = false;
+        sysState.sections.forEach(sec => sec.answers.forEach(ans => { ans.checkStatus = null; ans.correctValue = null; }));
+        const t = dict[sysState.settings.lang === 'auto' ? (navigator.language.startsWith('en') ? 'en' : 'tr') : sysState.settings.lang];
+        document.getElementById('mainCardTitle').innerText = t.titleInput;
+        document.getElementById('checkControls').style.display = 'none'; document.getElementById('inputControls').style.display = 'block';
+        document.getElementById('btnReAnalyze').className = 'btn-primary action-btn'; document.getElementById('btnReAnalyze').onclick = handleEvalFlow;
+        renderTabs(); render(); saveState();
+    }
+
+    function updateLiveStats() {
+        const langCode = sysState.settings.lang === 'auto' ? (navigator.language.startsWith('en') ? 'en' : 'tr') : sysState.settings.lang;
+        const penalty = examPresets[sysState.activeExam].penalty;
+        
+        let c = 0, w = 0, e = 0;
+        let breakdownHTML = '';
+        let displayNet = "0.00";
+        let displayTitle = "";
+        let labelC, labelW, labelE;
+        
+        // GENEL GÖRÜNÜM (En sonda "Genel Analizi Gör" tıklandığında veya sınav tek bölümlükse)
+        if (sysState.showOverallStats || sysState.sections.length === 1) {
+            let totalC = 0, totalW = 0, totalE = 0;
+            sysState.sections.forEach(sec => {
+                let sc = 0, sw = 0, se = 0;
+                sec.answers.forEach(ans => {
+                    if (ans.checkStatus === 'correct') sc++; else if (ans.checkStatus === 'wrong') sw++; else if (ans.checkStatus === 'empty_check') se++;
+                });
+                totalC += sc; totalW += sw; totalE += se;
+                let net = penalty === 0 ? sc.toFixed(2) : (sc - (sw / penalty)).toFixed(2);
+                
+                const targetText = sec.target > 0 ? ` / ${sec.target}` : '';
+                const secTitle = langCode === 'tr' ? sec.title_tr : sec.title_en;
+                
+                breakdownHTML += `
+                    <div class="breakdown-row">
+                        <strong>${secTitle}</strong>
+                        <span><span style="color:var(--success-text)">${sc}D</span> <span style="color:var(--danger-text)">${sw}Y</span> <span style="color:var(--text-muted)">${se}B</span> ${targetText} ➔ <strong>${net}</strong></span>
+                    </div>
+                `;
+            });
+            c = totalC; w = totalW; e = totalE;
+            displayNet = penalty === 0 ? totalC.toFixed(2) : (totalC - (totalW / penalty)).toFixed(2);
+            displayTitle = dict[langCode].lblNetInner; 
+            labelC = dict[langCode].overallCorrect;
+            labelW = dict[langCode].overallWrong;
+            labelE = dict[langCode].overallEmpty;
+        } 
+        // BÖLÜM GÖRÜNÜMÜ (Normal kontrol esnasında)
+        else {
+            const sec = sysState.sections[sysState.activeSec];
+            sec.answers.forEach(ans => {
+                if (ans.checkStatus === 'correct') c++; else if (ans.checkStatus === 'wrong') w++; else if (ans.checkStatus === 'empty_check') e++;
+            });
+            displayNet = penalty === 0 ? c.toFixed(2) : (c - (w / penalty)).toFixed(2);
+            const secTitle = langCode === 'tr' ? sec.title_tr : sec.title_en;
+            displayTitle = `${secTitle.toUpperCase()}<br>NET`;
+            labelC = dict[langCode].secCorrect;
+            labelW = dict[langCode].secWrong;
+            labelE = dict[langCode].secEmpty;
+        }
+
+        document.getElementById('chartNetText').innerText = displayNet;
+        document.getElementById('lblNetInner').innerHTML = displayTitle;
+        
+        let totalAnswers = c + w + e;
+        if(totalAnswers > 0) {
+            const pC = (c / totalAnswers) * 100; const pW = (w / totalAnswers) * 100;
+            document.getElementById('donutChart').style.background = `conic-gradient(#16a34a 0% ${pC}%, #ef4444 ${pC}% ${pC + pW}%, var(--empty-border) ${pC + pW}% 100%)`;
+        } else { document.getElementById('donutChart').style.background = `var(--empty-border)`; }
+
+        document.getElementById('liveStatsGrid').innerHTML = `
+            <div class="stat-card" style="background:var(--success-bg); color:var(--success-text); border-color:var(--success-border)"><span style="font-size:0.8rem; margin:0">${labelC}</span> <span style="font-size:1.5rem; font-weight:900;">${c}</span></div>
+            <div class="stat-card" style="background:var(--danger-bg); color:var(--danger-text); border-color:var(--danger-border)"><span style="font-size:0.8rem; margin:0">${labelW}</span> <span style="font-size:1.5rem; font-weight:900;">${w}</span></div>
+            <div class="stat-card" style="background:var(--empty-bg); color:var(--empty-text); border-color:var(--empty-border)"><span style="font-size:0.8rem; margin:0">${labelE}</span> <span style="font-size:1.5rem; font-weight:900;">${e}</span></div>
+        `;
+
+        const bContainer = document.getElementById('breakdownContainer');
+        if(breakdownHTML !== '') { bContainer.innerHTML = breakdownHTML; bContainer.style.display = 'block'; } 
+        else { bContainer.style.display = 'none'; }
+    }
+
+    function shareResult() {
+        playSound('click');
+        const langCode = sysState.settings.lang === 'auto' ? (navigator.language.startsWith('en') ? 'en' : 'tr') : sysState.settings.lang;
+        const isTR = langCode === 'tr'; const time = document.getElementById('timer').innerText;
+        const penalty = examPresets[sysState.activeExam].penalty;
+        let text = isTR ? `EPIAGORA Assess Sonucum:\n⏱️ Süre: ${time}\n\n` : `EPIAGORA Assess Result:\n⏱️ Time: ${time}\n\n`;
+        
+        let totalC=0, totalW=0;
+        sysState.sections.forEach(sec => {
+            let c=0, w=0, e=0;
+            sec.answers.forEach(ans => { if(ans.checkStatus==='correct') c++; else if(ans.checkStatus==='wrong') w++; else if(ans.checkStatus==='empty_check') e++; });
+            totalC+=c; totalW+=w; let n = penalty === 0 ? c.toFixed(2) : (c - (w/penalty)).toFixed(2);
+            
+            const targetText = sec.target > 0 ? `/${sec.target}` : '';
+            const secTitle = langCode === 'tr' ? sec.title_tr : sec.title_en;
+            if(c > 0 || w > 0 || e > 0) text += `🔸 ${secTitle}: ${c}D ${w}Y ${e}B ${targetText} -> Net: ${n}\n`;
+        });
+        let overallNet = penalty === 0 ? totalC.toFixed(2) : (totalC - (totalW/penalty)).toFixed(2);
+        text += isTR ? `\n🌟 TOPLAM NET: ${overallNet}\nSen de dene!` : `\n🌟 TOTAL SCORE: ${overallNet}\nTry it yourself!`;
+        
+        if (navigator.share) { navigator.share({ title: 'EPIAGORA Assess', text: text }).catch(console.error); } else { navigator.clipboard.writeText(text); showCustomDialog('alert', dict[langCode].msgSaved); }
+    }
+
+    function toggleFullScreen() { playSound('click'); if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+
+    window.addEventListener('keydown', (e) => {
+        if (document.getElementById('customDialog').style.display === 'grid') {
+            if (e.key === 'Enter' || e.code === 'Space') { e.preventDefault(); document.getElementById('cdBtnOk').click(); }
+            if (e.key === 'Escape') { e.preventDefault(); if (document.getElementById('cdBtnCancel').style.display !== 'none') document.getElementById('cdBtnCancel').click(); else document.getElementById('cdBtnOk').click(); } return;
+        }
+        if (document.querySelector('.modal[style="display: grid;"]') || document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'TEXTAREA') return;
+        if (sysState.isCheckingPhase) return;
+
+        const key = e.key.toUpperCase();
+        if (['A', 'B', 'C', 'D', 'E'].includes(key)) handleInput(key); if (['1', '2', '3', '4', '5'].includes(key)) handleInput(numMap[key]);
+        if (e.code === 'Space') { e.preventDefault(); addAnswer('Empty'); }
+        if (e.key === '?') toggleLastDoubt(); if (e.key === 'Backspace') undo(); if (e.key === 'M' || e.key === 'm') toggleMultiMode();
+    });
+
+    window.onload = loadState;
+</script>
+</body>
+</html>
