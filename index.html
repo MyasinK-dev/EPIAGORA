@@ -324,6 +324,16 @@
                 </select>
             </div>
         </div>
+        <!-- Yeni Titreşim Ayarı -->
+        <div class="setting-row">
+            <span class="setting-label" id="lblSetVib">Titreşim</span>
+            <div class="setting-control">
+                <select id="vibSelect" onchange="changeSetting('vibration', this.value === 'true')">
+                    <option value="true" id="optVibOn">Açık</option>
+                    <option value="false" id="optVibOff">Kapalı</option>
+                </select>
+            </div>
+        </div>
         <div class="setting-row">
             <span class="setting-label" id="lblSetBtnStyle">Button Style</span>
             <div class="setting-control">
@@ -412,6 +422,7 @@
             titleInput: "Cevap Girişi", titleResult: "Sınav Sonucu", time: "SÜRE", question: "SORU", 
             multi: "Çoklu Seçim", skip: "Atla", flag: "İşaretle", undo: "Geri Al", reset: "Sıfırla", finish: "Sınavı Tamamla ve Analiz Et", share: "Sonucu Paylaş", backInput: "Giriş Moduna Dön", newExam: "Yeni Sınava Başla", 
             optic: "Optik Kağıt", setSettings: "Ayarlar", setLang: "Dil (Language)", setSound: "Ses Efekti", setBtnStyle: "Buton Stili", setTheme: "Tema", setShortcuts: "Klavye Kısayolları", btnClose: "Kapat", btnUnderstood: "Anladım", btnView: "Görüntüle", 
+            setVibration: "Titreşim", optVibOn: "Açık", optVibOff: "Kapalı",
             modalEvalTitle: "Cevap Anahtarı", btnManual: "👆 Manuel Kontrol", btnCancel: "İptal", btnSmart: "Akıllı Analiz", btnReAnalyze: "Mevcut Bölümü Yeniden Değerlendir", btnExamComplete: "✨ Sınav Tamamlandı",
             shTitle: "Klavye Kısayolları ⌨️", shMark: "Şık işaretleme", shSkip: "Boş bırak / Atla", shUndo: "Geri Al", shFlag: "Şüpheli işaretle", shMulti: "Çoklu seçim modunu aç/kapat",
             dlgCancel: "İptal", dlgOk: "Tamam", errEmptyText: "Lütfen cevap anahtarı metnini yapıştırın.", errFormat: "Geçerli bir cevap formatı bulunamadı. Lütfen kontrol edin.",
@@ -430,6 +441,7 @@
             titleInput: "Answer Input", titleResult: "Exam Result", time: "TIME", question: "Q", 
             multi: "Multi-Select", skip: "Skip", flag: "Flag", undo: "Undo", reset: "Reset", finish: "Finish & Analyze", share: "Share Result", backInput: "Back to Input", newExam: "Start New Exam", 
             optic: "Answer Sheet", setSettings: "Settings", setLang: "Language", setSound: "Sound Effects", setBtnStyle: "Button Style", setTheme: "Theme", setShortcuts: "Keyboard Shortcuts", btnClose: "Close", btnUnderstood: "Got it", btnView: "View", 
+            setVibration: "Vibration", optVibOn: "On", optVibOff: "Off",
             modalEvalTitle: "Answer Key", btnManual: "👆 Manual Check", btnCancel: "Cancel", btnSmart: "Smart Analyze", btnReAnalyze: "Re-evaluate Current Section", btnExamComplete: "✨ Evaluation Complete",
             shTitle: "Keyboard Shortcuts ⌨️", shMark: "Mark option", shSkip: "Leave blank / Skip", shUndo: "Undo last", shFlag: "Flag as doubtful", shMulti: "Toggle multi-select mode",
             dlgCancel: "Cancel", dlgOk: "OK", errEmptyText: "Please paste the answer key text.", errFormat: "Valid format not found. Please check your text.",
@@ -463,8 +475,8 @@
     let sysState = { 
         activeExam: 'classic', activeSec: 0, sections: examPresets['classic'].sections.map(s => ({ title_tr: s.tr, title_en: s.en, target: s.target, answers: [] })),
         startTime: null, elapsedTime: 0, timerInterval: null, isMultiMode: false, tempMulti: [], editingIndex: null, countdownSeconds: null, isCheckingPhase: false,
-        showOverallStats: false, // Yeni: Genel analiz modu filtresi
-        settings: { lang: 'auto', sound: 'premium', btnStyle: 'icon', theme: 'auto' } 
+        showOverallStats: false,
+        settings: { lang: 'auto', sound: 'premium', btnStyle: 'icon', theme: 'auto', vibration: true } 
     };
     const numMap = { '1': 'A', '2': 'B', '3': 'C', '4': 'D', '5': 'E' };
 
@@ -500,6 +512,9 @@
         if (saved) {
             const p = JSON.parse(saved);
             if(p.settings) sysState.settings = { ...sysState.settings, ...p.settings }; // Güvenli birleştirme
+            // Eski versiyondan geçiş için titreşim kontrolü
+            if(sysState.settings.vibration === undefined) sysState.settings.vibration = true;
+
             if(p.sections) {
                 let hasData = false;
                 p.sections.forEach(s => { if(s.answers && s.answers.length > 0) hasData = true; });
@@ -514,7 +529,10 @@
                 } else { sysState.activeExam = p.activeExam || 'classic'; sysState.sections = p.sections; }
             }
         }
-        document.getElementById('langSelect').value = sysState.settings.lang; document.getElementById('soundSelect').value = sysState.settings.sound; document.getElementById('btnStyleSelect').value = sysState.settings.btnStyle;
+        document.getElementById('langSelect').value = sysState.settings.lang; 
+        document.getElementById('soundSelect').value = sysState.settings.sound; 
+        document.getElementById('btnStyleSelect').value = sysState.settings.btnStyle;
+        document.getElementById('vibSelect').value = sysState.settings.vibration.toString();
         applySettings(); renderTabs(); render();
     }
 
@@ -546,7 +564,6 @@
         exitCheckMode(); renderTabs(); render(); saveState();
     }
 
-    // TEMA UYGULAMA MANTIĞI
     function changeThemeSetting(val) {
         playSound('click');
         sysState.settings.theme = val;
@@ -558,7 +575,6 @@
         let t = sysState.settings.theme || 'auto';
         let actualTheme = t;
         
-        // Eğer sistem (auto) seçiliyse cihazın karanlık/aydınlık modunu tespit et
         if (t === 'auto') {
             actualTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
@@ -566,12 +582,10 @@
         document.body.setAttribute('data-theme', actualTheme);
         document.querySelector('meta[name="theme-color"]').setAttribute('content', actualTheme === 'dark' ? '#0f172a' : '#f8fafc');
         
-        // Menüdeki değeri eşitle
         const ts = document.getElementById('themeSelect');
         if(ts) ts.value = t;
     }
 
-    // Cihazın teması değişirse (Kullanıcı Auto'daysa canlı olarak güncelle)
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
         if (sysState.settings.theme === 'auto') {
             applyThemeSetting();
@@ -602,6 +616,8 @@
         document.getElementById('lblSetLang').innerText = t.setLang; document.getElementById('lblSetSound').innerText = t.setSound;
         document.getElementById('lblSetBtnStyle').innerText = t.setBtnStyle; document.getElementById('lblSetTheme').innerText = t.setTheme;
         document.getElementById('lblSetShortcuts').innerText = t.setShortcuts;
+        document.getElementById('lblSetVib').innerText = t.setVibration; document.getElementById('optVibOn').innerText = t.optVibOn; document.getElementById('optVibOff').innerText = t.optVibOff;
+
         document.getElementById('btnSettingsClose').innerText = t.btnClose; document.getElementById('btnShortcutsClose').innerText = t.btnUnderstood;
         document.getElementById('btnManualCheck').innerText = t.btnManual; document.getElementById('btnCancel').innerText = t.btnCancel; document.getElementById('btnSmart').innerText = t.btnSmart;
         document.getElementById('btnViewShortcuts').innerHTML = `⌨️ ${t.btnView}`;
@@ -613,12 +629,10 @@
         document.getElementById('optScifi').innerText = t.optScifi; document.getElementById('optAuto').innerText = t.optAuto;
         document.getElementById('optText').innerText = t.optText; document.getElementById('optIcon').innerText = t.optIcon; document.getElementById('optBoth').innerText = t.optBoth;
 
-        // TEMA YAZILARI
         document.getElementById('optThemeAuto').innerText = t.optThemeAuto; 
         document.getElementById('optThemeLight').innerText = t.optThemeLight; 
         document.getElementById('optThemeDark').innerText = t.optThemeDark;
 
-        // BUTON STİLİ LOGİC'İ GÜVENLE ÇALIŞTIRILIYOR
         const s = sysState.settings.btnStyle;
         document.querySelectorAll('.action-btn').forEach(btn => {
             const icon = btn.querySelector('.btn-icon'); const text = btn.querySelector('.btn-text');
@@ -633,37 +647,55 @@
 
     let audioCtx = null;
     function playSound(type) {
-        const s = sysState.settings.sound; if (s === 'muted') return;
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
-        osc.connect(gainNode); gainNode.connect(audioCtx.destination);
-        const t = audioCtx.currentTime; const isPremium = s === 'premium';
-        osc.type = s === 'mech' ? 'square' : (s === 'scifi' ? 'sawtooth' : 'sine');
+        const s = sysState.settings.sound; 
+        
+        // Ses ayarı (Muted değilse sesi oynat)
+        if (s !== 'muted') {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            const t = audioCtx.currentTime; const isPremium = s === 'premium';
+            osc.type = s === 'mech' ? 'square' : (s === 'scifi' ? 'sawtooth' : 'sine');
 
-        if (type === 'click') {
-            osc.frequency.setValueAtTime(s==='mech'?400:600, t); gainNode.gain.setValueAtTime(isPremium ? 0.03 : 0.05, t); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-            osc.start(t); osc.stop(t + 0.15);
-        } else if (type === 'doubt') { 
-            osc.frequency.setValueAtTime(400, t); osc.frequency.linearRampToValueAtTime(800, t + 0.15); gainNode.gain.setValueAtTime(isPremium ? 0.03 : 0.05, t); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-            osc.start(t); osc.stop(t + 0.15);
-        } else if (type === 'multi') { 
-            osc.frequency.setValueAtTime(700, t); gainNode.gain.setValueAtTime(0, t); gainNode.gain.linearRampToValueAtTime(isPremium ? 0.03 : 0.05, t + 0.02); gainNode.gain.linearRampToValueAtTime(0, t + 0.07); gainNode.gain.linearRampToValueAtTime(isPremium ? 0.03 : 0.05, t + 0.09); gainNode.gain.linearRampToValueAtTime(0, t + 0.14);
-            osc.start(t); osc.stop(t + 0.15);
-        } else if (type === 'wrong') { 
-            osc.type = 'triangle'; osc.frequency.setValueAtTime(200, t); osc.frequency.linearRampToValueAtTime(150, t + 0.2); gainNode.gain.setValueAtTime(isPremium ? 0.05 : 0.08, t); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-            osc.start(t); osc.stop(t + 0.2);
-        } else if (type === 'correct') { 
-            osc.frequency.setValueAtTime(800, t); osc.frequency.linearRampToValueAtTime(1200, t + 0.1); gainNode.gain.setValueAtTime(isPremium ? 0.03 : 0.05, t); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-            osc.start(t); osc.stop(t + 0.1);
-        } else if (type === 'undo') {
-            osc.type = 'triangle'; osc.frequency.setValueAtTime(s==='mech'?200:300, t); gainNode.gain.setValueAtTime(0.05, t); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-            osc.start(t); osc.stop(t + 0.15);
-        } else if (type === 'success') { 
-            osc.type = s==='scifi'?'sawtooth':'sine'; osc.frequency.setValueAtTime(523.25, t); osc.frequency.setValueAtTime(659.25, t + 0.1); gainNode.gain.setValueAtTime(isPremium?0.02:0.05, t); gainNode.gain.linearRampToValueAtTime(0, t + 0.3);
-            osc.start(t); osc.stop(t + 0.3);
+            if (type === 'click') {
+                osc.frequency.setValueAtTime(s==='mech'?400:600, t); gainNode.gain.setValueAtTime(isPremium ? 0.03 : 0.05, t); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+                osc.start(t); osc.stop(t + 0.15);
+            } else if (type === 'doubt') { 
+                osc.frequency.setValueAtTime(400, t); osc.frequency.linearRampToValueAtTime(800, t + 0.15); gainNode.gain.setValueAtTime(isPremium ? 0.03 : 0.05, t); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+                osc.start(t); osc.stop(t + 0.15);
+            } else if (type === 'multi') { 
+                osc.frequency.setValueAtTime(700, t); gainNode.gain.setValueAtTime(0, t); gainNode.gain.linearRampToValueAtTime(isPremium ? 0.03 : 0.05, t + 0.02); gainNode.gain.linearRampToValueAtTime(0, t + 0.07); gainNode.gain.linearRampToValueAtTime(isPremium ? 0.03 : 0.05, t + 0.09); gainNode.gain.linearRampToValueAtTime(0, t + 0.14);
+                osc.start(t); osc.stop(t + 0.15);
+            } else if (type === 'wrong') { 
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(200, t); osc.frequency.linearRampToValueAtTime(150, t + 0.2); gainNode.gain.setValueAtTime(isPremium ? 0.05 : 0.08, t); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+                osc.start(t); osc.stop(t + 0.2);
+            } else if (type === 'correct') { 
+                osc.frequency.setValueAtTime(800, t); osc.frequency.linearRampToValueAtTime(1200, t + 0.1); gainNode.gain.setValueAtTime(isPremium ? 0.03 : 0.05, t); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+                osc.start(t); osc.stop(t + 0.1);
+            } else if (type === 'undo') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(s==='mech'?200:300, t); gainNode.gain.setValueAtTime(0.05, t); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+                osc.start(t); osc.stop(t + 0.15);
+            } else if (type === 'success') { 
+                osc.type = s==='scifi'?'sawtooth':'sine'; osc.frequency.setValueAtTime(523.25, t); osc.frequency.setValueAtTime(659.25, t + 0.1); gainNode.gain.setValueAtTime(isPremium?0.02:0.05, t); gainNode.gain.linearRampToValueAtTime(0, t + 0.3);
+                osc.start(t); osc.stop(t + 0.3);
+            }
         }
-        if (navigator.vibrate && s !== 'muted') navigator.vibrate((type==='wrong' || s==='mech') ? 30 : 15);
+
+        // Özel Titreşim Ayarı ve Ritimleri
+        if (navigator.vibrate && sysState.settings.vibration !== false) {
+            if (type === 'correct') {
+                navigator.vibrate([20, 50, 20]); // Kısa, neşeli çift tık
+            } else if (type === 'wrong') {
+                navigator.vibrate([50, 80, 50]); // Sert, daha uzun çift/üçlü titreşim hissi
+            } else if (type === 'doubt') {
+                navigator.vibrate([30, 40, 30, 40]); // Ritmik soru işareti vurgusu
+            } else if (type === 'multi') {
+                navigator.vibrate([15, 20, 15, 20]); // Hızlı, kısa ardışık (çift cevap seçimi)
+            } else {
+                navigator.vibrate(s === 'mech' ? 30 : 15); // Standart tuş/tık titreşimi
+            }
+        }
     }
 
     function blurActiveElement() { if (document.activeElement && document.activeElement.tagName === 'BUTTON') document.activeElement.blur(); }
@@ -684,7 +716,6 @@
     function handleItemClick(index) { if (sysState.isCheckingPhase) return; toggleEditMode(index); blurActiveElement(); }
     function toggleEditMode(index) { playSound('click'); sysState.editingIndex = sysState.editingIndex === index ? null : index; render(); }
     
-    // Check Mode'da artık ekrana tıklanarak değiştirilmez. Manuel kontrol için buton var.
     function toggleCheckStatus(index) {
         const ans = sysState.sections[sysState.activeSec].answers[index];
         if (!ans.checkStatus) { ans.checkStatus = 'correct'; playSound('correct'); } else if (ans.checkStatus === 'correct') { ans.checkStatus = 'wrong'; playSound('wrong'); }
@@ -694,18 +725,20 @@
 
     function handleInput(val) {
         if (sysState.isCheckingPhase) return;
-        playSound('click');
         if (sysState.isMultiMode) {
+            playSound('multi'); // Çoklu moda özel tık sesi/titreşim
             if (!sysState.tempMulti.includes(val)) { sysState.tempMulti.push(val); event.target.classList.add('active'); }
             if (sysState.tempMulti.length === 2) { addAnswer(sysState.tempMulti.join('')); exitMultiMode(); }
-        } else { addAnswer(val); }
+        } else { 
+            playSound('click');
+            addAnswer(val); 
+        }
         blurActiveElement();
     }
 
     function toggleMultiMode() { if (sysState.isCheckingPhase) return; playSound('multi'); sysState.isMultiMode = !sysState.isMultiMode; sysState.tempMulti = []; document.getElementById('btnMulti').classList.toggle('active', sysState.isMultiMode); if(!sysState.isMultiMode) exitMultiMode(); blurActiveElement(); }
     function exitMultiMode() { sysState.isMultiMode = false; sysState.tempMulti = []; document.getElementById('btnMulti').classList.remove('active'); document.querySelectorAll('.letter-btn').forEach(b => b.classList.remove('active')); }
 
-    // KLASİK MOD SÜRE BAŞLATMA DÜZELTİLDİ
     function addAnswer(val) {
         if (sysState.isCheckingPhase) return;
         const target = sysState.sections[sysState.activeSec].target;
@@ -764,7 +797,7 @@
             if (sysState.isCheckingPhase) {
                 if (ans.checkStatus === 'correct') classes.push('correct'); else if (ans.checkStatus === 'wrong') classes.push('wrong');
                 else if (ans.checkStatus === 'empty_check') classes.push('checked-empty'); else classes.push('status-empty');
-                item.onclick = () => toggleCheckStatus(index); // Check modunda tıklama buraya yönlenir
+                item.onclick = () => toggleCheckStatus(index);
             } else {
                 if (ans.isDoubt) classes.push('status-doubt'); if (ans.value === 'Empty') classes.push('status-empty');
                 if (ans.value.length > 1 && ans.value !== 'Empty') classes.push('status-multi'); if (sysState.editingIndex === index) classes.push('editing-active');
@@ -816,7 +849,7 @@
         const isLast = sysState.activeSec === sysState.sections.length - 1;
         if (!isLast) { 
             sysState.activeSec++; 
-            sysState.showOverallStats = false; // Yeni bölüme geçince genel analizi kapat
+            sysState.showOverallStats = false;
             renderTabs(); 
             render(); 
             updateLiveStats(); 
@@ -836,7 +869,6 @@
             btnReAnalyze.className = 'btn-primary action-btn';
             btnReAnalyze.onclick = handleEvalFlow;
         } else { 
-            // SON BÖLÜM MANTIĞI GÜNCELLENDİ
             if (!sysState.showOverallStats && sysState.sections.length > 1) {
                 lblReAnalyze.innerText = dict[lang].btnShowOverall;
                 btnReAnalyze.className = 'btn-primary action-btn';
@@ -932,7 +964,6 @@
         let displayTitle = "";
         let labelC, labelW, labelE;
         
-        // GENEL GÖRÜNÜM (En sonda "Genel Analizi Gör" tıklandığında veya sınav tek bölümlükse)
         if (sysState.showOverallStats || sysState.sections.length === 1) {
             let totalC = 0, totalW = 0, totalE = 0;
             sysState.sections.forEach(sec => {
@@ -960,7 +991,6 @@
             labelW = dict[langCode].overallWrong;
             labelE = dict[langCode].overallEmpty;
         } 
-        // BÖLÜM GÖRÜNÜMÜ (Normal kontrol esnasında)
         else {
             const sec = sysState.sections[sysState.activeSec];
             sec.answers.forEach(ans => {
